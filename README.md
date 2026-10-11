@@ -60,5 +60,3 @@ This project is helping me understand the complete data warehousing workflow, fr
 I am using this hands-on experience to strengthen my foundations in SQL, ETL development, data quality, and dimensional modeling as I work toward my goal of becoming a Data Engineer.
 
 ---
-
-*This is an ongoing learning project. I will continue updating the repository as I implement and document each stage.*
