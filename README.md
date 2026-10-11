@@ -1,4 +1,4 @@
-<img width="5548" height="3708" alt="image" src="https://github.com/user-attachments/assets/61741ea6-e468-4aa3-839c-e8e55014226a" /># Data Warehouse and Analytics Project 🚀
+# Data Warehouse and Analytics Project 🚀
 
 ## 📌 About the Project
 
@@ -60,3 +60,5 @@ This project is helping me understand the complete data warehousing workflow, fr
 I am using this hands-on experience to strengthen my foundations in SQL, ETL development, data quality, and dimensional modeling as I work toward my goal of becoming a Data Engineer.
 
 ---
+
+*This is an ongoing learning project. I will continue updating the repository as I implement and document each stage.*
