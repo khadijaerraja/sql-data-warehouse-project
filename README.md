@@ -12,7 +12,7 @@ My goal is to strengthen my SQL and Data Engineering skills by applying concepts
 
 The project follows the Medallion Architecture, organized into three layers: Bronze, Silver, and Gold.
 
-![Data Architecture](docs/data_architecture.png)
+![Data Architecture](documents/data_architecture.png)
 
 - **Bronze Layer:** Ingests raw CSV data from ERP and CRM source systems into SQL Server.
 - **Silver Layer:** Cleans, standardizes, and integrates data to improve consistency and quality.
