@@ -1,1 +1,178 @@
+/*
+===============================================================================
+Silver Layer - Data Quality Assessment
+===============================================================================
+Objective:
+    Assess the reliability of the transformed datasets before they are used
+    by downstream analytical processes.
 
+Validation Scope:
+    - Primary key integrity and duplicate detection.
+    - String formatting and whitespace validation.
+    - Domain value consistency.
+    - Numeric value and business rule verification.
+    - Date validity and chronological consistency.
+    - Cross-field calculations and data relationships.
+
+Execution:
+    Execute these queries after the Silver Layer loading process.
+    Review any returned records to determine whether corrective action
+    is required.
+===============================================================================
+*/
+
+
+-- ============================================================================
+-- 1. Customer Data Validation
+-- ============================================================================
+
+-- Identify missing or repeated customer identifiers
+SELECT
+    cst_id,
+    COUNT(*) AS record_count
+FROM silver.crm_cust_info
+GROUP BY cst_id
+HAVING COUNT(*) > 1
+    OR cst_id IS NULL;
+
+
+-- Detect leading or trailing whitespace in customer reference codes
+SELECT
+    cst_key
+FROM silver.crm_cust_info
+WHERE cst_key <> TRIM(cst_key);
+
+
+-- Review the available marital status categories
+SELECT DISTINCT
+    cst_marital_status
+FROM silver.crm_cust_info;
+
+
+-- ============================================================================
+-- 2. Product Data Validation
+-- ============================================================================
+
+-- Verify product identifier uniqueness and completeness
+SELECT
+    prd_id,
+    COUNT(*) AS record_count
+FROM silver.crm_prd_info
+GROUP BY prd_id
+HAVING COUNT(*) > 1
+    OR prd_id IS NULL;
+
+
+-- Find product names containing unnecessary whitespace
+SELECT
+    prd_nm
+FROM silver.crm_prd_info
+WHERE prd_nm <> TRIM(prd_nm);
+
+
+-- Detect missing or negative product costs
+SELECT
+    prd_cost
+FROM silver.crm_prd_info
+WHERE prd_cost < 0
+    OR prd_cost IS NULL;
+
+
+-- Inspect the product line values used in the dataset
+SELECT DISTINCT
+    prd_line
+FROM silver.crm_prd_info;
+
+
+-- Identify product records with inconsistent validity periods
+SELECT *
+FROM silver.crm_prd_info
+WHERE prd_end_dt < prd_start_dt;
+
+
+-- ============================================================================
+-- 3. Sales Data Validation
+-- ============================================================================
+
+-- Validate raw due-date values before relying on converted date columns
+-- The Bronze Layer is used to inspect the original date representation.
+SELECT
+    NULLIF(sls_due_dt, 0) AS sls_due_dt
+FROM bronze.crm_sales_details
+WHERE sls_due_dt <= 0
+    OR LEN(sls_due_dt) <> 8
+    OR sls_due_dt > 20500101
+    OR sls_due_dt < 19000101;
+
+
+-- Check the chronological order of sales-related dates
+SELECT *
+FROM silver.crm_sales_details
+WHERE sls_order_dt > sls_ship_dt
+    OR sls_order_dt > sls_due_dt;
+
+
+-- Verify sales amounts against quantity and unit price
+SELECT DISTINCT
+    sls_sales,
+    sls_quantity,
+    sls_price
+FROM silver.crm_sales_details
+WHERE sls_sales <> sls_quantity * sls_price
+    OR sls_sales IS NULL
+    OR sls_quantity IS NULL
+    OR sls_price IS NULL
+    OR sls_sales <= 0
+    OR sls_quantity <= 0
+    OR sls_price <= 0
+ORDER BY
+    sls_sales,
+    sls_quantity,
+    sls_price;
+
+
+-- ============================================================================
+-- 4. Customer Demographic Data Validation
+-- ============================================================================
+
+-- Flag birth dates outside the accepted range
+SELECT DISTINCT
+    bdate
+FROM silver.erp_cust_az12
+WHERE bdate < '1924-01-01'
+    OR bdate > GETDATE();
+
+
+-- Review gender values for standardization
+SELECT DISTINCT
+    gen
+FROM silver.erp_cust_az12;
+
+
+-- ============================================================================
+-- 5. Customer Location Data Validation
+-- ============================================================================
+
+-- Examine country labels to identify inconsistent representations
+SELECT DISTINCT
+    cntry
+FROM silver.erp_loc_a101
+ORDER BY cntry;
+
+
+-- ============================================================================
+-- 6. Product Classification Data Validation
+-- ============================================================================
+
+-- Detect unwanted whitespace in product classification attributes
+SELECT *
+FROM silver.erp_px_cat_g1v2
+WHERE cat <> TRIM(cat)
+    OR subcat <> TRIM(subcat)
+    OR maintenance <> TRIM(maintenance);
+
+
+-- Review maintenance category values
+SELECT DISTINCT
+    maintenance
+FROM silver.erp_px_cat_g1v2;
